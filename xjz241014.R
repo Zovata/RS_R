@@ -59,3 +59,4 @@ writeLAS(las, output_file)
 plot(las, color = "Classification")
 
 # 可视化
+library(ggplot2)
