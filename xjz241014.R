@@ -58,3 +58,4 @@ writeLAS(las, output_file)
 # 可视化点云，地面点分类为2
 plot(las, color = "Classification")
 
+# 可视化
