@@ -466,22 +466,16 @@ writeRaster(agb_raster, "agb_raster.tif", format = "GTiff")
 install.packages("poweRlaw")   # 用于幂律分布检验
 library(poweRlaw)
 
-print(chm)
-# 第2步：提取高于5米的冠层数据
-chm_above_5m <- chm[chm[] > 5]  # 提取大于5米的值
+# 创建一个新的栅格，值大于5米的设为1，不大于5米的设为0
+reclass_matrix <- matrix(c(-Inf, 6, 0,   # 高度小于等于5的部分设为0
+                           6, Inf, 1),  # 高度大于5的部分设为1
+                         ncol=3, byrow=TRUE)
 
-# 使用 values() 获取栅格数据为数值向量
-chm_values <- values(chm)
+chm_binary <- classify(chm, reclass_matrix)
 
-# 只筛选高于5米的值，确保返回的结果是数值向量而不是数据框
-chm_above_5m <- chm_values[chm_values > 5]
-# 第3步：计算每个斑块的大小或其他感兴趣的度量
-# 如果我们只关心高度，我们将它们视为数据样本
-# 将 NA 值移除
-chm_above_5m <- na.omit(chm_above_5m)
+# 查看分类后的结果
+plot(chm_binary)
 
-# 确认 chm_above_5m 是数值向量
-print(class(chm_above_5m))  # 应输出 "numeric"
 
 # 第4步：使用 poweRlaw 包进行幂律分布拟合和检验
 # 创建幂律对象，plfit是用于幂律分布拟合的函数
