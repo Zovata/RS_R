@@ -455,3 +455,54 @@ plot(agb_raster, main = "Above-Ground Biomass (AGB)", col = terrain.colors(50))
 
 # 保存 AGB 栅格为文件
 writeRaster(agb_raster, "agb_raster.tif", format = "GTiff")
+
+
+
+
+# 植被格局分析 ------------------------------------------------------------------
+
+
+## 冠层斑块的幂律分布 ---------------------------------------------------------------
+install.packages("poweRlaw")   # 用于幂律分布检验
+library(poweRlaw)
+
+print(chm)
+# 第2步：提取高于5米的冠层数据
+chm_above_5m <- chm[chm[] > 5]  # 提取大于5米的值
+
+# 使用 values() 获取栅格数据为数值向量
+chm_values <- values(chm)
+
+# 只筛选高于5米的值，确保返回的结果是数值向量而不是数据框
+chm_above_5m <- chm_values[chm_values > 5]
+# 第3步：计算每个斑块的大小或其他感兴趣的度量
+# 如果我们只关心高度，我们将它们视为数据样本
+# 将 NA 值移除
+chm_above_5m <- na.omit(chm_above_5m)
+
+# 确认 chm_above_5m 是数值向量
+print(class(chm_above_5m))  # 应输出 "numeric"
+
+# 第4步：使用 poweRlaw 包进行幂律分布拟合和检验
+# 创建幂律对象，plfit是用于幂律分布拟合的函数
+pl_model <- conpl$new(chm_above_5m)
+
+
+# 估计参数 xmin 和 alpha（幂律指数）
+est <- estimate_xmin(pl_model)
+pl_model$setXmin(est)
+
+# 查看估计的最小值和alpha值
+cat("最小值 xmin: ", est$xmin, "\n")
+cat("幂律指数 alpha: ", est$pars, "\n")
+
+# 第5步：进行拟合检验
+# 通过Kolmogorov-Smirnov检验来评估模型的拟合优度
+goftest <- bootstrap_p(pl_model, no_of_sims=1000)
+
+# 输出结果
+cat("p-value: ", goftest$p, "\n")
+
+# 结果解释：
+# 如果p-value较大（通常 > 0.1），表明数据符合幂律分布；
+# 如果p-value较小，表明数据不符合幂律分布。
